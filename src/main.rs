@@ -1,11 +1,11 @@
 use std::env;
-use std::process::{Command, exit};
+use std::process::{Command, ExitCode};
 
-fn main() {
+fn main() -> ExitCode {
     // SSH calls us as the askpass helper — just print the password
     if env::var("_SSHPASS_ASKPASS").is_ok() {
         print!("{}", env::var("SSHPASS").unwrap_or_default());
-        return;
+        return ExitCode::from(0);
     }
 
     let args: Vec<String> = env::args().collect();
@@ -33,7 +33,7 @@ fn main() {
     if ssh_args.is_empty() {
         eprintln!("Usage: sshpass -p <password> ssh [args...]");
         eprintln!("       sshpass -e ssh [args...]  (reads SSHPASS env var)");
-        exit(1);
+        return ExitCode::from(1);
     }
 
     let self_exe = env::current_exe().expect("can't resolve own path");
@@ -47,5 +47,13 @@ fn main() {
         .status()
         .expect("failed to spawn SSH");
 
-    exit(status.code().unwrap_or(1));
+    int_to_exit_code(status.code().unwrap_or(1))
+}
+
+fn int_to_exit_code(code: i32) -> ExitCode {
+    if code < 0 {
+        ExitCode::from(1)
+    } else {
+        ExitCode::from(code as u8)
+    }
 }
