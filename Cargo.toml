@@ -3,4 +3,13 @@ name = "sshpass-rs"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "sshpass"
+path = "src/main.rs"
+
 [dependencies]
+
+[profile.release]
+lto = true
+opt-level = "s"
+strip = "debuginfo"
